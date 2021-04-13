@@ -14,7 +14,6 @@ public class MeetingDto {
 	private String title;
 	private LocalDateTime startDateTime;
 	private LocalDateTime endDateTime;
-	private Integer duration;
 	private ArrayList<EmployeeDto> atendees;
 	private String description;
 	private EmployeeDto organizer;

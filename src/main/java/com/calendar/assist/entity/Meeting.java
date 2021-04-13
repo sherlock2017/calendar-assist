@@ -48,9 +48,6 @@ public class Meeting {
 	@Column(name = "END_DATE_TIME")
 	private LocalDateTime endDateTime;
 	
-	@Column(name = "DURATION")
-	private Integer duration;
-	
 	@Column(name = "DESCRIPTION")
 	private String description;
 	
