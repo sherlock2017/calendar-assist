@@ -2,9 +2,6 @@ package com.calendar.assist.controller;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,20 +12,38 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.calendar.assist.dto.TimeSlotDto;
-import com.calendar.assist.entity.TimeSlot;
 import com.calendar.assist.service.CalendarService;
 
+/**
+ * Controller to handle calendar
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @RestController
 @RequestMapping(value = "/calendar/v1/")
 public class CalendarController {
 
+	/**
+	 * service to handle calendar logics and operations
+	 */
 	@Autowired
 	private CalendarService calendarService;
 
+	/**
+	 * This API find available time slots between 2 employees on a calendar date
+	 * 
+	 * @param emp1
+	 * @param emp2
+	 * @param calendarDate
+	 * @param durationInMins
+	 * @return
+	 */
 	@GetMapping("free-slots/{emp1}/{emp2}/{calendarDate}/{durationInMins}")
-	public Set<TimeSlotDto> getFreeTimeSlots(@PathVariable("emp1") final BigInteger emp1,
+	public Set<TimeSlotDto> getAvailableSlots(@PathVariable("emp1") final BigInteger emp1,
 			@PathVariable("emp2") final BigInteger emp2, @PathVariable("calendarDate") @DateTimeFormat(pattern = "yyyy-MM-dd") final LocalDate calendarDate,
 			@PathVariable("durationInMins") final int durationInMins) {
-		return calendarService.getFreeTimeSlots(emp1, emp2, calendarDate, durationInMins);
+		return calendarService.getAvailableSlots(emp1, emp2, calendarDate, durationInMins);
 	}
 }

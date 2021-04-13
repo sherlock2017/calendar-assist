@@ -1,12 +1,8 @@
 package com.calendar.assist.service;
 
 import java.math.BigInteger;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,12 +18,19 @@ import com.calendar.assist.dto.TimeSlotDto;
 import com.calendar.assist.entity.Calendar;
 import com.calendar.assist.entity.Employee;
 import com.calendar.assist.entity.Meeting;
-import com.calendar.assist.entity.SlotStatus;
 import com.calendar.assist.entity.TimeSlot;
 import com.calendar.assist.repository.CalendarRepository;
+import com.calendar.assists.enums.SlotStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Service to operate on Calendar
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Service
 @Slf4j
 public class CalendarService {
@@ -61,14 +64,19 @@ public class CalendarService {
 		timeSlotService.saveTimeSlot(timeSlot);
 	}
 
-	public Set<TimeSlotDto> getFreeTimeSlots(BigInteger empId1, BigInteger empId2, LocalDate calendarDate,
+	/**
+	 * @param empId1
+	 * @param empId2
+	 * @param calendarDate
+	 * @param durationInMins
+	 * @return
+	 */
+	public Set<TimeSlotDto> getAvailableSlots(BigInteger empId1, BigInteger empId2, LocalDate calendarDate,
 			int durationInMins) {
 
 		// get calendar Ids for both emps and TimeSlots for each calendar
 		BigInteger calendarId1 = calendarRepository.getCalendarIdForEmployee(empId1, calendarDate);
 		BigInteger calendarId2 = calendarRepository.getCalendarIdForEmployee(empId2, calendarDate);
-
-		//Duration duration = Duration.ofMinutes(durationInMins);
 
 		List<TimeSlot> timeSlotsForEmployee1 = timeSlotService.getBookedTimeSlots(calendarId1);
 		List<TimeSlot> timeSlotsForEmployee2 = timeSlotService.getBookedTimeSlots(calendarId2);
@@ -85,6 +93,11 @@ public class CalendarService {
 		return availableSlots;
 	}
 
+	/**
+	 * @param bookedTimeSlots
+	 * @param duration
+	 * @return
+	 */
 	private LinkedHashSet<TimeSlotDto> computeFreeSlots(List<TimeSlot> bookedTimeSlots, int duration) {
 
 		LinkedHashSet<TimeSlotDto> availableSlots = new LinkedHashSet<>();
@@ -113,6 +126,13 @@ public class CalendarService {
 		return availableSlots;
 	}
 
+	/**
+	 * @param atendee
+	 * @param meetingDate
+	 * @param meetingStartTime
+	 * @param meetingEndTime
+	 * @return
+	 */
 	public boolean checkAnyConflictExist(EmployeeDto atendee, LocalDate meetingDate, LocalTime meetingStartTime,
 			LocalTime meetingEndTime) {
 	
@@ -134,6 +154,13 @@ public class CalendarService {
 		return conflictExists.get();
 	}
 
+	/**
+	 * @param proposedStartTime
+	 * @param proposedEndTime
+	 * @param bookedStartTime
+	 * @param bookedEndTime
+	 * @return
+	 */
 	private boolean computeConflicts(LocalTime proposedStartTime, LocalTime proposedEndTime, LocalTime bookedStartTime,
 			LocalTime bookedEndTime) {
 		

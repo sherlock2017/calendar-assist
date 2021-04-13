@@ -1,11 +1,9 @@
 package com.calendar.assist.service;
 
 import java.math.BigInteger;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,14 +19,11 @@ import com.calendar.assist.dto.MeetingDto;
 import com.calendar.assist.entity.Calendar;
 import com.calendar.assist.entity.Employee;
 import com.calendar.assist.entity.Invitation;
-import com.calendar.assist.entity.InviteStatus;
 import com.calendar.assist.entity.Meeting;
-import com.calendar.assist.entity.SlotStatus;
-import com.calendar.assist.entity.TimeSlot;
 import com.calendar.assist.exception.CalendarAssistBusinessException;
 import com.calendar.assist.exception.ErrorDetail;
 import com.calendar.assist.repository.MeetingRepository;
-
+import com.calendar.assists.enums.InviteStatus;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -47,6 +42,9 @@ public class MeetingService {
 	@Autowired
 	private MeetingRepository meetingRepository;
 
+	/**
+	 * @param meetingDto
+	 */
 	@Transactional
 	public void bookMeeting(final MeetingDto meetingDto) {
 		ArrayList<EmployeeDto> atendees = meetingDto.getAtendees();
@@ -86,6 +84,11 @@ public class MeetingService {
 		}
 	}
 
+	/**
+	 * @param meetingDto
+	 * @param organizer
+	 * @return
+	 */
 	private boolean checkIfSimilarMeetingExists(MeetingDto meetingDto, Employee organizer) {
 
 		boolean similarMeetingExists = false;
@@ -127,6 +130,10 @@ public class MeetingService {
 		return meetingRepository.save(meeting);
 	}
 
+	/**
+	 * @param meetingDto
+	 * @return
+	 */
 	public List<EmployeeDto> getConflictedParticipants(final MeetingDto meetingDto) {
 
 		LocalDate meetingDate = meetingDto.getStartDateTime().toLocalDate();

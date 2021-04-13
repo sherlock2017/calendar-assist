@@ -1,9 +1,8 @@
 package com.calendar.assist.dto;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import com.calendar.assist.entity.SlotStatus;
+import com.calendar.assists.enums.SlotStatus;
 
 import lombok.Getter;
 import lombok.Setter;

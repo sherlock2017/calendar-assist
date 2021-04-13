@@ -9,6 +9,13 @@ import org.springframework.stereotype.Component;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Id class for Meeting entity
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Getter
 @Setter
 @Component

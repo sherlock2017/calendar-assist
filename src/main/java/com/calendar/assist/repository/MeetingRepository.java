@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.calendar.assist.dto.EmployeeDto;
 import com.calendar.assist.entity.Meeting;
 import com.calendar.assist.id.MeetingId;
 

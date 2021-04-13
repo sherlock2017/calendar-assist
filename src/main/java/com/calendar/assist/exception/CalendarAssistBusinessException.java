@@ -2,6 +2,13 @@ package com.calendar.assist.exception;
 
 import lombok.Getter;
 
+/**
+ * Business Exception for Calendar Assistance
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Getter
 public class CalendarAssistBusinessException extends RuntimeException {
 
@@ -19,6 +26,5 @@ public class CalendarAssistBusinessException extends RuntimeException {
 	public CalendarAssistBusinessException(final ErrorDetail details, final Throwable cause) {
 		super(cause);
 		this.details = details;
-
 	}
 }

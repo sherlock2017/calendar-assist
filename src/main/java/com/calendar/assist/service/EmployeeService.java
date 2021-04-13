@@ -6,15 +6,16 @@ import org.springframework.stereotype.Service;
 import com.calendar.assist.entity.Employee;
 import com.calendar.assist.repository.EmployeeRepository;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@Slf4j
 public class EmployeeService {
 	
 	@Autowired
 	private EmployeeRepository employeeRepository;
 
+	/**
+	 * @param emailId
+	 * @return
+	 */
 	public Employee getEmployeeByEmailId(final String emailId) {
 		return employeeRepository.getEmployeeByEmailId(emailId);
 	}
