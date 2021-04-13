@@ -1,5 +1,5 @@
 package com.calendar.assists.enums;
 
 public enum SlotStatus {
-	AVAILABLE, BOOKED;
+	AVAILABLE, BOOKED, CONFLICT;
 }

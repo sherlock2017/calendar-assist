@@ -2,6 +2,7 @@ package com.calendar.assist.service;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,7 +18,6 @@ import com.calendar.assist.dto.EmployeeDto;
 import com.calendar.assist.dto.TimeSlotDto;
 import com.calendar.assist.entity.Calendar;
 import com.calendar.assist.entity.Employee;
-import com.calendar.assist.entity.Meeting;
 import com.calendar.assist.entity.TimeSlot;
 import com.calendar.assist.repository.CalendarRepository;
 import com.calendar.assists.enums.SlotStatus;
@@ -49,7 +49,7 @@ public class CalendarService {
 	 * 
 	 * @param calendar
 	 */
-	public Calendar saveCalendar(Calendar calendar, final Meeting meeting) {
+	public Calendar saveCalendar(Calendar calendar) {
 		return calendarRepository.save(calendar);
 	}
 
@@ -76,10 +76,9 @@ public class CalendarService {
 		log.info("Booked Slots for employee {}: {}", empId1, timeSlotsForEmployee1.toString());
 		log.info("Booked Slots for employee {}: {}", empId2, timeSlotsForEmployee2.toString());
 
-		LinkedHashSet<TimeSlotDto> availableSlots = computeFreeSlots(bookedTimeSlots, durationInMins);
 
 		// derive the free time slots using booked time slots
-		return availableSlots;
+		return computeFreeSlots(bookedTimeSlots, durationInMins, calendarDate);
 	}
 
 	/**
@@ -87,31 +86,47 @@ public class CalendarService {
 	 * @param duration
 	 * @return
 	 */
-	private LinkedHashSet<TimeSlotDto> computeFreeSlots(List<TimeSlot> bookedTimeSlots, int duration) {
+	private LinkedHashSet<TimeSlotDto> computeFreeSlots(List<TimeSlot> bookedTimeSlots, int duration,
+			LocalDate calendarDate) {
 
 		LinkedHashSet<TimeSlotDto> availableSlots = new LinkedHashSet<>();
+		LinkedHashSet<TimeSlotDto> conflictSlots = new LinkedHashSet<>();
 		bookedTimeSlots.forEach(bookedSlot -> {
-			LocalTime proposedStartTime = LocalTime.parse("00:00");
-			LocalTime proposedEndTime = LocalTime.parse("00:30");
+			LocalDateTime proposedStartDateTime = LocalDateTime.of(calendarDate, LocalTime.parse("00:00"));
+			LocalDateTime proposedEndDateTime = LocalDateTime.of(calendarDate,
+					LocalTime.parse("00:00").plusMinutes(duration));
 			LocalTime bookedStartTime = bookedSlot.getStartTime();
 			LocalTime bookedEndTime = bookedSlot.getEndTime();
 
-			while (!proposedStartTime.equals(LocalTime.parse("23:30"))
-					&& !proposedEndTime.equals(LocalTime.parse("00:00"))) {
-				if (computeConflicts(proposedStartTime, proposedEndTime, bookedStartTime, bookedEndTime)) {
-					log.info("proposed timeslot conflicts - ({},{}) - ({},{})", proposedStartTime, proposedEndTime,
-							bookedStartTime, bookedEndTime);
+			LocalDateTime allowedDateTime = LocalDateTime.of(calendarDate, LocalTime.parse("00:00")).plusDays(1);
+
+			while (!proposedStartDateTime.isAfter(allowedDateTime)) {
+				if (computeConflicts(proposedStartDateTime.toLocalTime(), proposedEndDateTime.toLocalTime(),
+						bookedStartTime, bookedEndTime)) {
+					TimeSlotDto ts = new TimeSlotDto();
+					ts.setStartTime(proposedStartDateTime.toLocalTime());
+					ts.setEndTime(proposedEndDateTime.toLocalTime());
+					ts.setSlotStatus(SlotStatus.CONFLICT);
+					conflictSlots.add(ts);
 				} else {
 					TimeSlotDto ts = new TimeSlotDto();
-					ts.setStartTime(proposedStartTime);
-					ts.setEndTime(proposedEndTime);
+					ts.setStartTime(proposedStartDateTime.toLocalTime());
+					ts.setEndTime(proposedEndDateTime.toLocalTime());
 					ts.setSlotStatus(SlotStatus.AVAILABLE);
 					availableSlots.add(ts);
 				}
-				proposedStartTime = proposedStartTime.plusMinutes(duration);
-				proposedEndTime = proposedEndTime.plusMinutes(duration);
+				proposedStartDateTime = proposedStartDateTime.plusMinutes(duration);
+				proposedEndDateTime = proposedEndDateTime.plusMinutes(duration);
 			}
 		});
+
+		if (!conflictSlots.isEmpty()) {
+			conflictSlots.forEach(conflictSlot -> {
+				log.info("proposed timeslot conflicts - ({},{})", conflictSlot.getStartTime(),
+						conflictSlot.getEndTime());
+
+			});
+		}
 
 		return availableSlots;
 	}
@@ -155,14 +170,16 @@ public class CalendarService {
 			LocalTime bookedEndTime) {
 
 		boolean conflictExists = false;
-		if ((proposedStartTime.isBefore(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime)
-				&& proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime))
-				|| (proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime)
-						&& proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime))
-				|| (proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime)
-						&& proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isAfter(bookedEndTime))
-				|| (proposedStartTime.equals(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime))
-				|| (proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.equals(bookedEndTime))) {
+		boolean condition1 = proposedStartTime.isBefore(bookedStartTime)
+				&& (proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime));
+		boolean condition2 = proposedStartTime.equals(bookedStartTime)
+				&& (proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime));
+		boolean condition3 = (proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime))
+				&& (proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime));
+		boolean condition4 = (proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime))
+				&& proposedEndTime.isAfter(bookedStartTime);
+		boolean condition5 = proposedStartTime.equals(bookedStartTime) && proposedEndTime.equals(bookedEndTime);
+		if (condition1 || condition2 || condition3 || condition4  || condition5) {
 			conflictExists = true;
 		}
 

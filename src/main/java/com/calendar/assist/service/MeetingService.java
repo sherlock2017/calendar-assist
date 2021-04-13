@@ -132,7 +132,7 @@ public class MeetingService {
 			Calendar calendar = new Calendar();
 			calendar.setEmployeeId(employee.getEmployeeId());
 			calendar.setDate(meeting.getStartDateTime().toLocalDate());
-			calendar = calendarService.saveCalendar(calendar, meeting);
+			calendar = calendarService.saveCalendar(calendar);
 			timeSlot.setCalendarId(calendar.getCalendarId());
 		} else {
 			timeSlot.setCalendarId(existingCalendarId);
