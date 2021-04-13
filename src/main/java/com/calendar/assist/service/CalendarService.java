@@ -21,6 +21,7 @@ import com.calendar.assist.entity.Employee;
 import com.calendar.assist.entity.TimeSlot;
 import com.calendar.assist.repository.CalendarRepository;
 import com.calendar.assists.enums.SlotStatus;
+import com.calendar.assists.util.CalendarAssistConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,13 +93,13 @@ public class CalendarService {
 		LinkedHashSet<TimeSlotDto> availableSlots = new LinkedHashSet<>();
 		LinkedHashSet<TimeSlotDto> conflictSlots = new LinkedHashSet<>();
 		bookedTimeSlots.forEach(bookedSlot -> {
-			LocalDateTime proposedStartDateTime = LocalDateTime.of(calendarDate, LocalTime.parse("00:00"));
+			LocalDateTime proposedStartDateTime = LocalDateTime.of(calendarDate, LocalTime.parse(CalendarAssistConstants.MIDNIGHT));
 			LocalDateTime proposedEndDateTime = LocalDateTime.of(calendarDate,
-					LocalTime.parse("00:00").plusMinutes(duration));
+					LocalTime.parse(CalendarAssistConstants.MIDNIGHT).plusMinutes(duration));
 			LocalTime bookedStartTime = bookedSlot.getStartTime();
 			LocalTime bookedEndTime = bookedSlot.getEndTime();
 
-			LocalDateTime allowedDateTime = LocalDateTime.of(calendarDate, LocalTime.parse("00:00")).plusDays(1);
+			LocalDateTime allowedDateTime = LocalDateTime.of(calendarDate, LocalTime.parse(CalendarAssistConstants.MIDNIGHT)).plusDays(CalendarAssistConstants.ONE);
 
 			while (!proposedStartDateTime.isAfter(allowedDateTime)) {
 				if (computeConflicts(proposedStartDateTime.toLocalTime(), proposedEndDateTime.toLocalTime(),
@@ -122,7 +123,7 @@ public class CalendarService {
 
 		if (!conflictSlots.isEmpty()) {
 			conflictSlots.forEach(conflictSlot -> {
-				log.info("proposed timeslot conflicts - ({},{})", conflictSlot.getStartTime(),
+				log.info("Conflict Time slot - ({},{})", conflictSlot.getStartTime(),
 						conflictSlot.getEndTime());
 
 			});
