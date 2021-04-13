@@ -3,19 +3,24 @@ package com.calendar.assist.service;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.calendar.assist.dto.EmployeeDto;
 import com.calendar.assist.dto.TimeSlotDto;
 import com.calendar.assist.entity.Calendar;
+import com.calendar.assist.entity.Employee;
 import com.calendar.assist.entity.Meeting;
 import com.calendar.assist.entity.SlotStatus;
 import com.calendar.assist.entity.TimeSlot;
@@ -32,6 +37,9 @@ public class CalendarService {
 
 	@Autowired
 	private TimeSlotService timeSlotService;
+	
+	@Autowired
+	private EmployeeService employeeService;
 
 	/**
 	 * this service API saves the calendar and blocks the timeslot
@@ -53,7 +61,7 @@ public class CalendarService {
 		timeSlotService.saveTimeSlot(timeSlot);
 	}
 
-	public LinkedHashSet<TimeSlotDto> getFreeTimeSlots(BigInteger empId1, BigInteger empId2, LocalDate calendarDate,
+	public Set<TimeSlotDto> getFreeTimeSlots(BigInteger empId1, BigInteger empId2, LocalDate calendarDate,
 			int durationInMins) {
 
 		// get calendar Ids for both emps and TimeSlots for each calendar
@@ -81,32 +89,64 @@ public class CalendarService {
 
 		LinkedHashSet<TimeSlotDto> availableSlots = new LinkedHashSet<>();
 		bookedTimeSlots.forEach(bookedSlot -> {
-			LocalTime startTime = LocalTime.parse("00:00");
-			LocalTime endTime = LocalTime.parse("00:30");
+			LocalTime proposedStartTime = LocalTime.parse("00:00");
+			LocalTime proposedEndTime = LocalTime.parse("00:30");
 			LocalTime bookedStartTime = bookedSlot.getStartTime();
 			LocalTime bookedEndTime = bookedSlot.getEndTime();
 
-			while (!startTime.equals(LocalTime.parse("23:30")) && !endTime.equals(LocalTime.parse("00:00"))) {
-				if((startTime.isBefore(bookedStartTime) && startTime.isBefore(bookedEndTime) && endTime.isAfter(bookedStartTime) && endTime.isBefore(bookedEndTime)) || 
-						(startTime.isAfter(bookedStartTime) && startTime.isBefore(bookedEndTime) && endTime.isAfter(bookedStartTime) && endTime.isBefore(bookedEndTime)) ||
-						(startTime.isAfter(bookedStartTime) && startTime.isBefore(bookedEndTime) && endTime.isAfter(bookedStartTime) && endTime.isAfter(bookedEndTime)) ||
-						(startTime.equals(bookedStartTime) ||  endTime.equals(bookedEndTime))) {
-					log.info("proposed timeslot conflicts - ({},{}) - ({},{})", startTime, endTime, bookedStartTime, bookedEndTime);
+			while (!proposedStartTime.equals(LocalTime.parse("23:30")) && !proposedEndTime.equals(LocalTime.parse("00:00"))) {
+				if(computeConflicts(proposedStartTime, proposedEndTime, bookedStartTime, bookedEndTime)) {
+					log.info("proposed timeslot conflicts - ({},{}) - ({},{})", proposedStartTime, proposedEndTime, bookedStartTime, bookedEndTime);
 				}
 				else {
 					TimeSlotDto ts = new TimeSlotDto();
-					ts.setStartTime(startTime);
-					ts.setEndTime(endTime);
+					ts.setStartTime(proposedStartTime);
+					ts.setEndTime(proposedEndTime);
 					ts.setSlotStatus(SlotStatus.AVAILABLE);
 					availableSlots.add(ts);
-					log.info("found free timeslot - ({},{})", startTime, endTime);
 				}
-				startTime = startTime.plusMinutes(duration);
-				endTime = endTime.plusMinutes(duration);
+				proposedStartTime = proposedStartTime.plusMinutes(duration);
+				proposedEndTime = proposedEndTime.plusMinutes(duration);
 			}
 		});
 		
 		return availableSlots;
+	}
+
+	public boolean checkAnyConflictExist(EmployeeDto atendee, LocalDate meetingDate, LocalTime meetingStartTime,
+			LocalTime meetingEndTime) {
+	
+		final Employee employee = employeeService.getEmployeeByEmailId(atendee.getEmailId());
+		
+		//get calender id of the atendee for a specefic date
+		final BigInteger calendarId = calendarRepository.getCalendarIdForEmployee(employee.getEmployeeId(), meetingDate);
+		
+		List<TimeSlot> timeSlots = timeSlotService.getBookedTimeSlots(calendarId);
+		AtomicBoolean conflictExists = new AtomicBoolean(Boolean.FALSE);
+		timeSlots.forEach(timeSlot -> {
+			final LocalTime bookedStartTime = timeSlot.getStartTime();
+			final LocalTime bookedEndTime = timeSlot.getEndTime();
+			conflictExists.set(computeConflicts(meetingStartTime, meetingEndTime, bookedStartTime, bookedEndTime));
+			if(Boolean.TRUE.equals(conflictExists.get()))
+				return;
+		});
+		
+		return conflictExists.get();
+	}
+
+	private boolean computeConflicts(LocalTime proposedStartTime, LocalTime proposedEndTime, LocalTime bookedStartTime,
+			LocalTime bookedEndTime) {
+		
+		boolean conflictExists = false;
+		if((proposedStartTime.isBefore(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime) && proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime)) || 
+				(proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime) && proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime)) ||
+				(proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime) && proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isAfter(bookedEndTime)) ||
+				(proposedStartTime.equals(bookedStartTime) ||  proposedStartTime.equals(bookedEndTime)))
+		{
+			conflictExists = true;
+		}
+		
+		return conflictExists;
 	}
 
 }

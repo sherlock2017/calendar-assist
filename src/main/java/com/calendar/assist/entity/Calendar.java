@@ -7,7 +7,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
+
+import com.calendar.assist.id.CalendarId;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +25,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Entity
 @Table(name = "CALENDAR")
+@IdClass(value = CalendarId.class)
 public class Calendar {
 
 	@Id
@@ -30,6 +34,7 @@ public class Calendar {
 	
 	private BigInteger employeeId;
 	
+	@Id
 	private LocalDate date;
 
 }
