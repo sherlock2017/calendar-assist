@@ -3,3 +3,6 @@ server:
     8083
  servlet:
     context-path: /api/calendar-assist
+spring:
+ jpa:
+  show-sql: true

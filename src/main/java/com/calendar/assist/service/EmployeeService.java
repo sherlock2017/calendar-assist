@@ -15,7 +15,7 @@ public class EmployeeService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
 
-	public Employee getEmployeeById(final String emailId) {
+	public Employee getEmployeeByEmailId(final String emailId) {
 		return employeeRepository.getEmployeeByEmailId(emailId);
 	}
 

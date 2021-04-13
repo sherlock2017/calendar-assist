@@ -1,5 +1,6 @@
 package com.calendar.assist.service;
 
+import java.math.BigInteger;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -48,20 +49,16 @@ public class MeetingService {
 		ArrayList<EmployeeDto> atendees = meetingDto.getAtendees();
 		
 		Meeting meeting = saveMeeting(meetingDto);
+		Employee organizer = employeeService.getEmployeeByEmailId(meetingDto.getOrganizer().getEmailId());
+		addMeetingToCalendar(meeting, organizer);
 		
 		if(Optional.ofNullable(atendees).isPresent() && !atendees.isEmpty()) {
-			
-			EmployeeDto organizer = meetingDto.getOrganizer();
-			LocalDateTime meetinStartDateTime = meetingDto.getStartDateTime();
-			LocalDateTime meetinEndDateTime = meetingDto.getEndDateTime();
-			
-			
 			atendees.forEach(atendee -> {
-				Employee employee = employeeService.getEmployeeById(atendee.getEmailId());
+				Employee employee = employeeService.getEmployeeByEmailId(atendee.getEmailId());
 				if(Optional.ofNullable(employee).isPresent()) {
 					log.error("Valid atendee: {}", atendee.getEmailId());
 					
-					//check if employee has that time slot available
+					//TODO: check if employee has that time slot available
 					
 					
 					// if yes then create invite
@@ -71,17 +68,25 @@ public class MeetingService {
 					invitation.setInviteStatus(InviteStatus.NOT_ACCEPTED);
 					invitationService.sendInvite(invitation);
 					
-					// add the meeting to person calendar
-					Calendar calendar = new Calendar();
-					calendar.setEmployeeId(employee.getEmployeeId());
-					calendar.setDate(meeting.getStartDateTime().toLocalDate());
-					calendarService.saveCalendar(calendar, meeting);
+					addMeetingToCalendar(meeting, employee);
 				}
 				else {
 					log.error("Invalid atendee: {}", atendee.getEmailId());
 				}
 			});
 		}
+	}
+
+	/**
+	 * @param meeting
+	 * @param employee
+	 */
+	private void addMeetingToCalendar(Meeting meeting, Employee employee) {
+		// add the meeting to person calendar
+		Calendar calendar = new Calendar();
+		calendar.setEmployeeId(employee.getEmployeeId());
+		calendar.setDate(meeting.getStartDateTime().toLocalDate());
+		calendarService.saveCalendar(calendar, meeting);
 	}
 
 	/**
@@ -93,13 +98,8 @@ public class MeetingService {
 	private Meeting saveMeeting(final MeetingDto meetingDto) {
 		Meeting meeting = new Meeting();
 		BeanUtils.copyProperties(meetingDto, meeting);
-		meeting.setOrganizerId(employeeService.getEmployeeById(meetingDto.getOrganizer().getEmailId()).getEmployeeId());
+		meeting.setOrganizerId(employeeService.getEmployeeByEmailId(meetingDto.getOrganizer().getEmailId()).getEmployeeId());
 		return meetingRepository.save(meeting);
-	}
-
-	public List<TimeSlot> getFreeTimeSlots(String emp1, String emp2) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public List<Employee> getConflictedParticipants(Meeting meeting) {
