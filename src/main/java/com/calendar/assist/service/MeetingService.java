@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +17,12 @@ import com.calendar.assist.dto.EmployeeDto;
 import com.calendar.assist.dto.MeetingDto;
 import com.calendar.assist.entity.Calendar;
 import com.calendar.assist.entity.Employee;
+import com.calendar.assist.entity.Invitation;
+import com.calendar.assist.entity.InviteStatus;
 import com.calendar.assist.entity.Meeting;
 import com.calendar.assist.entity.SlotStatus;
 import com.calendar.assist.entity.TimeSlot;
-
+import com.calendar.assist.repository.MeetingRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,39 +33,68 @@ public class MeetingService {
 	@Autowired
 	private EmployeeService employeeService;
 	
-	private ArrayList<Employee> employeesIntoMeeting = new ArrayList<>();
-	private ArrayList<Meeting> meetingList = new ArrayList<>();
+	@Autowired
+	private CalendarService calendarService;
 	
+	@Autowired
+	private InvitationService invitationService;
+	
+	@Autowired
+	private MeetingRepository meetingRepository;
+	
+	
+	@Transactional
 	public void bookMeeting(final MeetingDto meetingDto) {
 		ArrayList<EmployeeDto> atendees = meetingDto.getAtendees();
+		
+		Meeting meeting = saveMeeting(meetingDto);
+		
 		if(Optional.ofNullable(atendees).isPresent() && !atendees.isEmpty()) {
+			
+			EmployeeDto organizer = meetingDto.getOrganizer();
+			LocalDateTime meetinStartDateTime = meetingDto.getStartDateTime();
+			LocalDateTime meetinEndDateTime = meetingDto.getEndDateTime();
+			
+			
 			atendees.forEach(atendee -> {
-				Optional<Employee> emp = employeeService.getEmployeeById(atendee.getEmailId());
-				if(emp.isPresent()) {
-					log.info("Employee -- {} ", emp.get().toString());
-					Employee employee = emp.get();
+				Employee employee = employeeService.getEmployeeById(atendee.getEmailId());
+				if(Optional.ofNullable(employee).isPresent()) {
+					log.error("Valid atendee: {}", atendee.getEmailId());
 					
-					// then save
-					LocalDateTime meetingStartDateTime = meetingDto.getStartDateTime();
-					LocalDateTime meetingEndDateTime = meetingDto.getEndDateTime();
+					//check if employee has that time slot available
 					
+					
+					// if yes then create invite
+					Invitation invitation = new Invitation();
+					invitation.setEmployeeId(employee.getEmployeeId());
+					invitation.setMeetingId(meeting.getMeetingId());
+					invitation.setInviteStatus(InviteStatus.NOT_ACCEPTED);
+					invitationService.sendInvite(invitation);
+					
+					// add the meeting to person calendar
 					Calendar calendar = new Calendar();
-					calendar.setDate(meetingStartDateTime.toLocalDate());
-					
-					TimeSlot timeSlot = new TimeSlot();
-					timeSlot.setStartTime(meetingStartDateTime.toLocalTime());
-					timeSlot.setEndTime(meetingEndDateTime.toLocalTime());
-					timeSlot.setSlotStatus(SlotStatus.BOOKED);
-					calendar.setTimeSlot(timeSlot);
-					employee.setCalendar(calendar);
-					
-					employeesIntoMeeting.add(employee);
+					calendar.setEmployeeId(employee.getEmployeeId());
+					calendar.setDate(meeting.getStartDateTime().toLocalDate());
+					calendarService.saveCalendar(calendar, meeting);
 				}
-				
-				log.info(employeesIntoMeeting.toString());
-				
+				else {
+					log.error("Invalid atendee: {}", atendee.getEmailId());
+				}
 			});
 		}
+	}
+
+	/**
+	 * save the meeting using meeting repository
+	 * 
+	 * @param meetingDto
+	 * @return
+	 */
+	private Meeting saveMeeting(final MeetingDto meetingDto) {
+		Meeting meeting = new Meeting();
+		BeanUtils.copyProperties(meetingDto, meeting);
+		meeting.setOrganizerId(employeeService.getEmployeeById(meetingDto.getOrganizer().getEmailId()).getEmployeeId());
+		return meetingRepository.save(meeting);
 	}
 
 	public List<TimeSlot> getFreeTimeSlots(String emp1, String emp2) {
@@ -69,7 +103,9 @@ public class MeetingService {
 	}
 
 	public List<Employee> getConflictedParticipants(Meeting meeting) {
-		// TODO Auto-generated method stub
+		
+		// get the meeting sta
+		
 		return null;
 	}
 

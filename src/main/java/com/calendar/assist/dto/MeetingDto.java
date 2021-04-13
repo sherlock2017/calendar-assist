@@ -20,5 +20,6 @@ public class MeetingDto {
 	private Integer duration;
 	private ArrayList<EmployeeDto> atendees;
 	private String description;
+	private EmployeeDto organizer;
 
 }

@@ -3,29 +3,27 @@ package com.calendar.assist.entity;
 import java.math.BigInteger;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
+@Entity
+@Table(name = "INVITATION")
 @Getter
 @Setter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-@Entity
-@Table(name = "EMPLOYEE")
-public class Employee {
+public class Invitation {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
+	private BigInteger invitationId;
+	private BigInteger meetingId;
 	private BigInteger employeeId;
-	private String name;
-	private String emailId;
+	@Enumerated(EnumType.STRING)
+	private InviteStatus inviteStatus;
 }
