@@ -6,6 +6,14 @@
 
 `insert into employee (email_id, name) values ('rishabh.jain@gmail.com', 'Rishabh Jain');`
 
+## Project Setup
+
+Follow the below steps to set up and start the project
+* Clone this repository using - git clone https://github.com/sherlock2017/calendar-assist.git
+* Now any preferred IDE and import the project as a 'Maven Existing Project'
+* No wait for the POM to get resolved
+* To run the application, navigate to com.calendar.assist package and run CalendarAssistApplication.java as Java Application
+
 ## API Documentation
 
 
