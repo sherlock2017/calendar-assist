@@ -40,7 +40,7 @@ public class CalendarService {
 
 	@Autowired
 	private TimeSlotService timeSlotService;
-	
+
 	@Autowired
 	private EmployeeService employeeService;
 
@@ -49,19 +49,8 @@ public class CalendarService {
 	 * 
 	 * @param calendar
 	 */
-	public void saveCalendar(Calendar calendar, final Meeting meeting) {
-
-		calendar = calendarRepository.save(calendar);
-
-		LocalTime startTime = meeting.getStartDateTime().toLocalTime();
-		LocalTime endTime = meeting.getEndDateTime().toLocalTime();
-
-		TimeSlot timeSlot = new TimeSlot();
-		timeSlot.setCalendarId(calendar.getCalendarId());
-		timeSlot.setStartTime(startTime);
-		timeSlot.setEndTime(endTime);
-		timeSlot.setSlotStatus(SlotStatus.BOOKED);
-		timeSlotService.saveTimeSlot(timeSlot);
+	public Calendar saveCalendar(Calendar calendar, final Meeting meeting) {
+		return calendarRepository.save(calendar);
 	}
 
 	/**
@@ -107,11 +96,12 @@ public class CalendarService {
 			LocalTime bookedStartTime = bookedSlot.getStartTime();
 			LocalTime bookedEndTime = bookedSlot.getEndTime();
 
-			while (!proposedStartTime.equals(LocalTime.parse("23:30")) && !proposedEndTime.equals(LocalTime.parse("00:00"))) {
-				if(computeConflicts(proposedStartTime, proposedEndTime, bookedStartTime, bookedEndTime)) {
-					log.info("proposed timeslot conflicts - ({},{}) - ({},{})", proposedStartTime, proposedEndTime, bookedStartTime, bookedEndTime);
-				}
-				else {
+			while (!proposedStartTime.equals(LocalTime.parse("23:30"))
+					&& !proposedEndTime.equals(LocalTime.parse("00:00"))) {
+				if (computeConflicts(proposedStartTime, proposedEndTime, bookedStartTime, bookedEndTime)) {
+					log.info("proposed timeslot conflicts - ({},{}) - ({},{})", proposedStartTime, proposedEndTime,
+							bookedStartTime, bookedEndTime);
+				} else {
 					TimeSlotDto ts = new TimeSlotDto();
 					ts.setStartTime(proposedStartTime);
 					ts.setEndTime(proposedEndTime);
@@ -122,7 +112,7 @@ public class CalendarService {
 				proposedEndTime = proposedEndTime.plusMinutes(duration);
 			}
 		});
-		
+
 		return availableSlots;
 	}
 
@@ -135,22 +125,22 @@ public class CalendarService {
 	 */
 	public boolean checkAnyConflictExist(EmployeeDto atendee, LocalDate meetingDate, LocalTime meetingStartTime,
 			LocalTime meetingEndTime) {
-	
+
 		final Employee employee = employeeService.getEmployeeByEmailId(atendee.getEmailId());
-		
-		//get calender id of the atendee for a specefic date
-		final BigInteger calendarId = calendarRepository.getCalendarIdForEmployee(employee.getEmployeeId(), meetingDate);
-		
+
+		// get calender id of the atendee for a specefic date
+		final BigInteger calendarId = getCalendarIdForEmployee(employee.getEmployeeId(), meetingDate);
+
 		List<TimeSlot> timeSlots = timeSlotService.getBookedTimeSlots(calendarId);
 		AtomicBoolean conflictExists = new AtomicBoolean(Boolean.FALSE);
 		timeSlots.forEach(timeSlot -> {
 			final LocalTime bookedStartTime = timeSlot.getStartTime();
 			final LocalTime bookedEndTime = timeSlot.getEndTime();
 			conflictExists.set(computeConflicts(meetingStartTime, meetingEndTime, bookedStartTime, bookedEndTime));
-			if(Boolean.TRUE.equals(conflictExists.get()))
+			if (Boolean.TRUE.equals(conflictExists.get()))
 				return;
 		});
-		
+
 		return conflictExists.get();
 	}
 
@@ -163,17 +153,23 @@ public class CalendarService {
 	 */
 	private boolean computeConflicts(LocalTime proposedStartTime, LocalTime proposedEndTime, LocalTime bookedStartTime,
 			LocalTime bookedEndTime) {
-		
+
 		boolean conflictExists = false;
-		if((proposedStartTime.isBefore(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime) && proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime)) || 
-				(proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime) && proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime)) ||
-				(proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime) && proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isAfter(bookedEndTime)) ||
-				(proposedStartTime.equals(bookedStartTime) ||  proposedStartTime.equals(bookedEndTime)))
-		{
+		if ((proposedStartTime.isBefore(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime)
+				&& proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime))
+				|| (proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime)
+						&& proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime))
+				|| (proposedStartTime.isAfter(bookedStartTime) && proposedStartTime.isBefore(bookedEndTime)
+						&& proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.isAfter(bookedEndTime))
+				|| (proposedStartTime.equals(bookedStartTime) && proposedEndTime.isBefore(bookedEndTime))
+				|| (proposedEndTime.isAfter(bookedStartTime) && proposedEndTime.equals(bookedEndTime))) {
 			conflictExists = true;
 		}
-		
+
 		return conflictExists;
 	}
 
+	public BigInteger getCalendarIdForEmployee(final BigInteger employeeId, final LocalDate calendarDate) {
+		return calendarRepository.getCalendarIdForEmployee(employeeId, calendarDate);
+	}
 }

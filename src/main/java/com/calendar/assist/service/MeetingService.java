@@ -20,10 +20,13 @@ import com.calendar.assist.entity.Calendar;
 import com.calendar.assist.entity.Employee;
 import com.calendar.assist.entity.Invitation;
 import com.calendar.assist.entity.Meeting;
+import com.calendar.assist.entity.TimeSlot;
 import com.calendar.assist.exception.CalendarAssistBusinessException;
 import com.calendar.assist.exception.ErrorDetail;
 import com.calendar.assist.repository.MeetingRepository;
 import com.calendar.assists.enums.InviteStatus;
+import com.calendar.assists.enums.SlotStatus;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -35,6 +38,9 @@ public class MeetingService {
 
 	@Autowired
 	private CalendarService calendarService;
+
+	@Autowired
+	private TimeSlotService timeSlotService;
 
 	@Autowired
 	private InvitationService invitationService;
@@ -52,9 +58,9 @@ public class MeetingService {
 
 		Employee organizer = employeeService.getEmployeeByEmailId(meetingDto.getOrganizer().getEmailId());
 		final boolean similarMeetingExists = checkIfSimilarMeetingExists(meetingDto, organizer);
-		
-		if(!similarMeetingExists) {
-			
+
+		if (!similarMeetingExists) {
+
 			Meeting meeting = saveMeeting(meetingDto);
 			addMeetingToCalendar(meeting, organizer);
 
@@ -77,9 +83,9 @@ public class MeetingService {
 					}
 				});
 			}
-		}
-		else {
-			final ErrorDetail errorDetails = new ErrorDetail("CA101","you have booked a same meeting at this time slot");
+		} else {
+			final ErrorDetail errorDetails = new ErrorDetail("CA101",
+					"you have booked a same meeting at this time slot");
 			throw new CalendarAssistBusinessException(errorDetails);
 		}
 	}
@@ -109,11 +115,30 @@ public class MeetingService {
 	 * @param employee
 	 */
 	private void addMeetingToCalendar(Meeting meeting, Employee employee) {
-		// add the meeting to person calendar
-		Calendar calendar = new Calendar();
-		calendar.setEmployeeId(employee.getEmployeeId());
-		calendar.setDate(meeting.getStartDateTime().toLocalDate());
-		calendarService.saveCalendar(calendar, meeting);
+
+		// check if same date calendar already exists, if not then create one
+		final TimeSlot timeSlot = new TimeSlot();
+		final LocalTime startTime = meeting.getStartDateTime().toLocalTime();
+		final LocalTime endTime = meeting.getEndDateTime().toLocalTime();
+		final BigInteger existingCalendarId = calendarService.getCalendarIdForEmployee(employee.getEmployeeId(),
+				meeting.getStartDateTime().toLocalDate());
+		
+		timeSlot.setStartTime(startTime);
+		timeSlot.setEndTime(endTime);
+		timeSlot.setSlotStatus(SlotStatus.BOOKED);
+		
+
+		if (!Optional.ofNullable(existingCalendarId).isPresent()) {
+			Calendar calendar = new Calendar();
+			calendar.setEmployeeId(employee.getEmployeeId());
+			calendar.setDate(meeting.getStartDateTime().toLocalDate());
+			calendar = calendarService.saveCalendar(calendar, meeting);
+			timeSlot.setCalendarId(calendar.getCalendarId());
+		} else {
+			timeSlot.setCalendarId(existingCalendarId);
+		}
+
+		timeSlotService.saveTimeSlot(timeSlot);
 	}
 
 	/**
