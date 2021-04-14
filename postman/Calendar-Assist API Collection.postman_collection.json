@@ -1,0 +1,111 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Calendar-Assist API Collection",
+		"_postman_id": "2361376d-7b96-becb-9039-4558de61cf4d",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "book",
+			"request": {
+				"url": "localhost:8083/api/calendar-assist/meeting/v1/book",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"title\": \"Test\",\"startDateTime\": \"2018-02-05T17:00:00.000\",\"endDateTime\": \"2018-02-05T18:00:00.000\",\"description\": \"This is a test Description\",\"organizer\": {\"emailId\": \"rishabh.jain@gmail.com\"},\"atendees\": [{\"emailId\": \"priya.jain@gmail.com\"},{\"emailId\": \"saral.jain@gmail.com\"}] }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "conflicts",
+			"request": {
+				"url": "localhost:8083/api/calendar-assist/meeting/v1/conflicts",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"title\": \"Test\",\"startDateTime\": \"2018-02-05T17:00:00.000\",\"endDateTime\": \"2018-02-05T18:00:00.000\",\"description\": \"This is a test Description\",\"organizer\": {\"emailId\": \"rishabh.jain@gmail.com\"},\"atendees\": [{\"emailId\": \"priya.jain@gmail.com\"},{\"emailId\": \"saral.jain@gmail.com\"}] }"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "available-slots",
+			"request": {
+				"url": {
+					"raw": "localhost:8083/api/calendar-assist/calendar/v1/available-slots?empId1=1&empId2=2&calendarDate=2018-02-05&durationInMins=30",
+					"host": [
+						"localhost"
+					],
+					"port": "8083",
+					"path": [
+						"api",
+						"calendar-assist",
+						"calendar",
+						"v1",
+						"available-slots"
+					],
+					"query": [
+						{
+							"key": "empId1",
+							"value": "1",
+							"equals": true,
+							"description": ""
+						},
+						{
+							"key": "empId2",
+							"value": "2",
+							"equals": true,
+							"description": ""
+						},
+						{
+							"key": "calendarDate",
+							"value": "2018-02-05",
+							"equals": true,
+							"description": ""
+						},
+						{
+							"key": "durationInMins",
+							"value": "30",
+							"equals": true,
+							"description": ""
+						}
+					],
+					"variable": []
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"title\": \"Test\",\"startDateTime\": \"2018-02-05T17:00:00.000\",\"endDateTime\": \"2018-02-05T18:00:00.000\",\"description\": \"This is a test Description\",\"organizer\": {\"emailId\": \"rishabh.jain@gmail.com\"},\"atendees\": [{\"emailId\": \"priya.jain@gmail.com\"},{\"emailId\": \"saral.jain@gmail.com\"}] }"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
