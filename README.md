@@ -2,6 +2,7 @@
 
 * The calendar assist is a spring boot, JPA, in-memory H2 DB based service that handles calendar meetings for employees
 * It consists of 3 APIs - book-meeting, conflicts & available-slots
+* This project also covers test cases based on JUnit and Mockito framework
 * When the app starts, it automatically creates some employees, using data.sql script like below:
 
 `insert into employee (email_id, name) values ('rishabh.jain@gmail.com', 'Rishabh Jain');`
