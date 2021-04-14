@@ -139,7 +139,7 @@ public class CalendarService {
 	 * @param meetingEndTime
 	 * @return
 	 */
-	public boolean checkAnyConflictExist(EmployeeDto atendee, LocalDate meetingDate, LocalTime meetingStartTime,
+	public Boolean checkAnyConflictExist(EmployeeDto atendee, LocalDate meetingDate, LocalTime meetingStartTime,
 			LocalTime meetingEndTime) {
 
 		final Employee employee = employeeService.getEmployeeByEmailId(atendee.getEmailId());
