@@ -29,6 +29,13 @@ import com.calendar.assists.enums.SlotStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Service to operate on Meeting
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Service
 @Slf4j
 public class MeetingService {
@@ -53,9 +60,10 @@ public class MeetingService {
 	 */
 	@Transactional
 	public void bookMeeting(final MeetingDto meetingDto) {
-		ArrayList<EmployeeDto> atendees = meetingDto.getAtendees();
-		// check if meeting already organized by this organized at same time
 
+		ArrayList<EmployeeDto> atendees = meetingDto.getAtendees();
+
+		// check if meeting already organized by this organized at same time
 		Employee organizer = employeeService.getEmployeeByEmailId(meetingDto.getOrganizer().getEmailId());
 		final boolean similarMeetingExists = checkIfSimilarMeetingExists(meetingDto, organizer);
 
@@ -85,7 +93,7 @@ public class MeetingService {
 			}
 		} else {
 			final ErrorDetail errorDetails = new ErrorDetail("CA101",
-					"you have booked a same meeting at this time slot");
+					"Sorry! You have booked a same meeting at this time slot");
 			throw new CalendarAssistBusinessException(errorDetails);
 		}
 	}
@@ -122,11 +130,10 @@ public class MeetingService {
 		final LocalTime endTime = meeting.getEndDateTime().toLocalTime();
 		final BigInteger existingCalendarId = calendarService.getCalendarIdForEmployee(employee.getEmployeeId(),
 				meeting.getStartDateTime().toLocalDate());
-		
+
 		timeSlot.setStartTime(startTime);
 		timeSlot.setEndTime(endTime);
 		timeSlot.setSlotStatus(SlotStatus.BOOKED);
-		
 
 		if (!Optional.ofNullable(existingCalendarId).isPresent()) {
 			Calendar calendar = new Calendar();
@@ -168,7 +175,7 @@ public class MeetingService {
 		ArrayList<EmployeeDto> atendees = meetingDto.getAtendees();
 		ArrayList<EmployeeDto> conflictedAtendees = new ArrayList<>();
 
-		// for each atendee get the calender id for meetingDate
+		// for each attendee check if any conflict exists
 		atendees.forEach(atendee -> {
 			final boolean conflictExist = calendarService.checkAnyConflictExist(atendee, meetingDate, meetingStartTime,
 					meetingEndTime);
@@ -177,8 +184,6 @@ public class MeetingService {
 				conflictedAtendees.add(atendee);
 			}
 		});
-
-		// check that calendar find that meeting lies in between aloted time slot
 
 		return conflictedAtendees;
 	}

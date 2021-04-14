@@ -28,7 +28,7 @@ public class EmployeeServiceTest {
 	public void getEmployeeEmailIdTest() {
 		
 		String emailId = "rishabh.jain@gmail.com";
-		when(employeeRepository.getEmployeeByEmailId(ArgumentMatchers.anyString()))
+		when(employeeRepository.findByEmailId(ArgumentMatchers.anyString()))
 				.thenReturn(new Employee(BigInteger.ONE, "Rishabh Jain", emailId));
 
 		Employee employee = employeeService.getEmployeeByEmailId(emailId);

@@ -11,6 +11,13 @@ import org.springframework.stereotype.Repository;
 import com.calendar.assist.entity.Meeting;
 import com.calendar.assist.id.MeetingId;
 
+/**
+ * Repository for Meeting
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Repository
 public interface MeetingRepository extends JpaRepository<Meeting, MeetingId> {
 

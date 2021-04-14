@@ -10,10 +10,16 @@ import org.springframework.stereotype.Repository;
 
 import com.calendar.assist.entity.TimeSlot;
 
+/**
+ * Repository for TimeSlot
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Repository
-public interface TimeSlotRepository extends JpaRepository<TimeSlot, BigInteger>{
+public interface TimeSlotRepository extends JpaRepository<TimeSlot, BigInteger> {
 
-	@Query("select ts from TimeSlot ts where ts.calendarId = :calendarId")
-	public List<TimeSlot> getBookedTimeSlots(@Param("calendarId") BigInteger calendarId);
+	List<TimeSlot> findByCalendarId(BigInteger calendarId);
 
 }

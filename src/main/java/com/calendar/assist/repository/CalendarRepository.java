@@ -10,6 +10,13 @@ import org.springframework.stereotype.Repository;
 import com.calendar.assist.entity.Calendar;
 import com.calendar.assist.id.CalendarId;
 
+/**
+ * Repository for Calendar
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Repository
 public interface CalendarRepository extends JpaRepository<Calendar, CalendarId> {
 

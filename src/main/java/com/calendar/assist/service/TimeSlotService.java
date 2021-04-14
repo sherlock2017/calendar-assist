@@ -9,6 +9,13 @@ import org.springframework.stereotype.Service;
 import com.calendar.assist.entity.TimeSlot;
 import com.calendar.assist.repository.TimeSlotRepository;
 
+/**
+ * Service to operate on TimeSlot
+ * 
+ * @author Rishabh Jain
+ * @since 4/13/2021
+ *
+ */
 @Service
 public class TimeSlotService {
 
@@ -20,7 +27,7 @@ public class TimeSlotService {
 	}
 
 	public List<TimeSlot> getBookedTimeSlots(final BigInteger calendarId) {
-		return timeSlotRepository.getBookedTimeSlots(calendarId);
+		return timeSlotRepository.findByCalendarId(calendarId);
 	}
 
 }

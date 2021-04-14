@@ -65,8 +65,8 @@ public class CalendarService {
 			int durationInMins) {
 
 		// get calendar Ids for both emps and TimeSlots for each calendar
-		BigInteger calendarId1 = calendarRepository.getCalendarIdForEmployee(empId1, calendarDate);
-		BigInteger calendarId2 = calendarRepository.getCalendarIdForEmployee(empId2, calendarDate);
+		final BigInteger calendarId1 = calendarRepository.getCalendarIdForEmployee(empId1, calendarDate);
+		final BigInteger calendarId2 = calendarRepository.getCalendarIdForEmployee(empId2, calendarDate);
 
 		List<TimeSlot> timeSlotsForEmployee1 = timeSlotService.getBookedTimeSlots(calendarId1);
 		List<TimeSlot> timeSlotsForEmployee2 = timeSlotService.getBookedTimeSlots(calendarId2);
@@ -77,8 +77,7 @@ public class CalendarService {
 		log.info("Booked Slots for employee {}: {}", empId1, timeSlotsForEmployee1.toString());
 		log.info("Booked Slots for employee {}: {}", empId2, timeSlotsForEmployee2.toString());
 
-
-		// derive the free time slots using booked time slots
+		// compute the free time slots using booked time slots
 		return computeFreeSlots(bookedTimeSlots, durationInMins, calendarDate);
 	}
 
@@ -90,8 +89,8 @@ public class CalendarService {
 	private LinkedHashSet<TimeSlotDto> computeFreeSlots(List<TimeSlot> bookedTimeSlots, int duration,
 			LocalDate calendarDate) {
 
-		LinkedHashSet<TimeSlotDto> availableSlots = new LinkedHashSet<>();
-		LinkedHashSet<TimeSlotDto> conflictSlots = new LinkedHashSet<>();
+		final LinkedHashSet<TimeSlotDto> availableSlots = new LinkedHashSet<>();
+		final LinkedHashSet<TimeSlotDto> conflictSlots = new LinkedHashSet<>();
 		bookedTimeSlots.forEach(bookedSlot -> {
 			LocalDateTime proposedStartDateTime = LocalDateTime.of(calendarDate, LocalTime.parse(CalendarAssistConstants.MIDNIGHT));
 			LocalDateTime proposedEndDateTime = LocalDateTime.of(calendarDate,
