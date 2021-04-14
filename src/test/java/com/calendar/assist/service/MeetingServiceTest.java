@@ -1,7 +1,6 @@
 package com.calendar.assist.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -11,12 +10,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.calendar.assist.dto.MeetingDto;
 import com.calendar.assist.entity.Calendar;
 import com.calendar.assist.entity.Meeting;
-import com.calendar.assist.exception.CalendarAssistBusinessException;
 import com.calendar.assist.mock.service.MeetingMockService;
 import com.calendar.assist.repository.MeetingRepository;
 
